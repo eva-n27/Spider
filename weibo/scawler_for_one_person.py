@@ -41,8 +41,6 @@ for page in range(1, pages + 1):
     # find_all返回的是class为ctt的span的列表，名称在第一个span里
     user_name = bs(weibo_html, 'lxml').find_all('span', class_="ctt")[0].text.split()[0]
 
-
-
     # 找到发的微博
     weibos = bs(weibo_html, 'lxml').find_all('div', class_='c')
     for weibo in weibos:
