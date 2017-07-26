@@ -1,5 +1,6 @@
 # coding: utf-8
-# author: Xiang
+# author: Zhengpeng Xiang
+# date: 2016/10/02
 
 import MySQLdb
 
