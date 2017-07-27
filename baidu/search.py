@@ -32,11 +32,12 @@ class Spider:
 
         # 抓取数据内容
         for i in xrange(number_of_pages):
-            key = {'wd': self.keywords, 'pn': (i + self.number_of_pages_stored) * 10}
+            key = {'wd': self.keywords, 'pn': (i + self.number_of_pages_stored) * 10}  # pn表示页数
             web_content = requests.get("https://www.baidu.com/s?", params=key, headers=self.headers, timeout=4)
             print web_content.url
             html_.append(web_content.text)
 
+        print "html下载完成！"
         return html_
 
     def html_parser(self):
@@ -56,6 +57,7 @@ class Spider:
             if len(c_abstract) != 0:
                 for item_ in c_abstract:
                     text_.append(item_.text.strip())
+        print "html解析完成！"
         return text_
 
     def run(self, number_of_pages_stored_=None, text_=None, html_=None, number_of_results_=None, keywords_=None):
@@ -65,38 +67,62 @@ class Spider:
         if number_of_pages_stored_ is not None or text_ is not None or html_ is not None or \
            number_of_results_ is not None or keywords_ is not None:
             # 设置参数
-            self.set(number_of_pages_stored_=number_of_pages_stored_, text_=text_, html_=html_,
-                     number_of_results_=number_of_results_, keywords_=keywords_)
+            self.reset(number_of_pages_stored_=number_of_pages_stored_, text_=text_, html_=html_,
+                       number_of_results_=number_of_results_, keywords_=keywords_)
 
         # 爬取百度的搜索结果
         while len(self.text) < self.number_of_results:
             # 计算需要抓取的页面的数量
-            number_of_pages = (self.number_of_results - len(self.text)) / 10
+            if self.number_of_results - len(self.text) >= 10:
+                number_of_pages = (self.number_of_results - len(self.text)) / 10
+            else:
+                number_of_pages = 1
+
             self.html = self.get_html(number_of_pages)
-            self.text.extend(self.html_parser())
+
+            # 保存爬取得结果，仅保留number_of_results个结果
+            result_text = self.html_parser()
+            if len(result_text + self.text) > self.number_of_results:
+                self.text.extend(result_text[:self.number_of_results - len(self.text)])
+            else:
+                self.text.extend(result_text)
+
             self.number_of_pages_stored += number_of_pages
 
         print "从百度搜索结果中共爬取%s个结果，爬取完成！" % self.number_of_results
+        return self
 
-    def set(self, number_of_pages_stored_=None, text_=None, html_=None, number_of_results_=None, keywords_=None):
+    def reset(self, number_of_pages_stored_=None, text_=None, html_=None, number_of_results_=None, keywords_=None):
         """
         设置类中的属性值
         """
         if number_of_pages_stored_ is not None:
             self.number_of_pages_stored = number_of_pages_stored_
+        else:
+            self.number_of_pages_stored = 0
 
         if text_ is not None:
             self.text = text_
+        else:
+            self.text = []
 
         if html_ is not None:
             self.html = html_
+        else:
+            self.html = []
 
         if number_of_results_ is not None:
             self.number_of_results = number_of_results_
+        else:
+            self.number_of_results = 0
 
         if keywords_ is not None:
             self.keywords = keywords_
-        print "设置参数完毕！"
+        else:
+            self.keywords = ''
+
+        print "参数重置完毕！"
+        return self
 
     def get_result(self):
         """
@@ -106,13 +132,13 @@ class Spider:
         return self.text
 
 if __name__ == '__main__':
-    s = Spider
-    text = s('游戏名字', 20).get_result()
+    s = Spider('游戏名字', 20)
+    text = s.get_result()
     for item in text:
         print item
 
     print '******************'
 
-    text = s('游戏名字', 10).get_result()
+    text = s.run(keywords_='游戏名字', number_of_results_=10).get_result()
     for item in text:
         print item
