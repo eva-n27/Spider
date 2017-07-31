@@ -56,8 +56,6 @@ class Spider:
             soup = bs(self.html[i], 'lxml').find('div', id="content_left")
 
             # 找到所有class为c-abstract的div
-            # 分析了一下，只有这个标签中的数据是我们需要的文本
-            # 然后可以再去爬一下百度百科
             c_abstract = soup.find_all('div', class_="c-abstract")
 
             # 提取数据
